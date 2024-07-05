@@ -1,17 +1,33 @@
 import { useState, useEffect } from "react";
 import { Nombres } from "./Domain/Nombre";
 import ProductosList from "./ProductosList";
+import { useUsersContext } from "./Context/ProductosContext";
 
 export default function ProductosForm() {
-  const [nombre, setNombre] = useState("");
-  const [apellido, setApellido] = useState("");
-  const [idCategoria, setIdCategoria] = useState("");
-  const [nombres, setNombres] = useState<Nombres[]>([]);
-  const [nuevoNombre, setNuevoNombre] = useState("");
-  const [nuevoApellido, setNuevoApellido] = useState("");
-  const [nuevoIdCategoria, setNuevoIdCategoria] = useState("");
-  const[borrarCategoria, setBorrarCategoria] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const {
+    nombre,
+    setNombre,
+    apellido,
+    setApellido,
+    idCategoria,
+    setIdCategoria,
+    nombres,
+    setNombres,
+    nuevoNombre,
+    setNuevoNombre,
+    nuevoApellido,
+    setNuevoApellido,
+    nuevoIdCategoria,
+    setNuevoIdCategoria,
+    borrarCategoria,
+    setBorrarCategoria,
+    error,
+    setError,
+    guardarEnLocalStorage,
+
+  } = useUsersContext();
+
+ 
 
   useEffect(() => {
     const nombresGuardados = localStorage.getItem("nombres");
@@ -24,15 +40,6 @@ export default function ProductosForm() {
     localStorage.setItem("nombres", JSON.stringify(nombres));
   }, [nombres]);
 
-  const guardarEnLocalStorage = () => {
-    const nuevosNombres = [...nombres, { nombre, apellido, idCategoria }];
-    setNombres(nuevosNombres);
-    localStorage.setItem("nombres", JSON.stringify(nuevosNombres));
-
-    setNombre("");
-    setApellido("");
-    setIdCategoria("");
-  };
 
   const editarRegistroEnLocalStorage = (idCategoria: string, nuevoNombre: string, nuevoApellido: string, nuevoIdCategoria: string) => {
     const nombresGuardados = localStorage.getItem("nombres");
