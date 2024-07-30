@@ -2,3 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+nav ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  nav ul li {
+    display: inline;
+    margin-right: 10px;
+  }
+  
+  nav ul li .active {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  

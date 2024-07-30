@@ -1,81 +1,97 @@
-import React, { useContext, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { Nombres } from "../Domain/Nombre";
 
-export interface ContextState {
-  users: Nombres[];
-  setUsers: React.Dispatch<React.SetStateAction<Nombres[]>>;
-  nombre: string;
-  setNombre: React.Dispatch<React.SetStateAction<string>>;
-  apellido: string;
-  setApellido: React.Dispatch<React.SetStateAction<string>>;
-  idCategoria: string;
-  setIdCategoria: React.Dispatch<React.SetStateAction<string>>;
+interface ContextState {
   nombres: Nombres[];
-  setNombres: React.Dispatch<React.SetStateAction<Nombres[]>>;
-  nuevoNombre: string;
-  setNuevoNombre: React.Dispatch<React.SetStateAction<string>>;
-  nuevoApellido: string;
-  setNuevoApellido: React.Dispatch<React.SetStateAction<string>>;
-  nuevoIdCategoria: string;
-  setNuevoIdCategoria: React.Dispatch<React.SetStateAction<string>>;
-  borrarCategoria: string;
-  setBorrarCategoria: React.Dispatch<React.SetStateAction<string>>;
-  error: string | null;
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
-  guardarEnLocalStorage: () => void;
+  guardarEnLocalStorage: (nuevosNombres: Nombres[]) => void;
+  obtenerNombresDeLocalStorage: () => void;
+  nombreId: Nombres;
+  searchIdLocalStorage: (id: string) => void;
 }
 
-export const UsersContext = React.createContext({} as ContextState);
+export const UsersContext = createContext<ContextState | undefined>(undefined);
 
-export const UsersContextProvider = ({ children }: React.PropsWithChildren) => {
-  const [users, setUsers] = useState<Nombres[]>([]);
-
-  const [nombre, setNombre] = useState("");
-  const [apellido, setApellido] = useState("");
-  const [idCategoria, setIdCategoria] = useState("");
+export const UsersContextProvider = ({ children }: { children: ReactNode }) => {
   const [nombres, setNombres] = useState<Nombres[]>([]);
-  const [nuevoNombre, setNuevoNombre] = useState("");
-  const [nuevoApellido, setNuevoApellido] = useState("");
-  const [nuevoIdCategoria, setNuevoIdCategoria] = useState("");
-  const [borrarCategoria, setBorrarCategoria] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const guardarEnLocalStorage = () => {
-    const nuevosNombres = [...nombres, { nombre, apellido, idCategoria }];
-    setNombres(nuevosNombres);
+  const [nombreId, setNombresId] = useState<Nombres[]>([]);
+  
+
+  const obtenerNombresDeLocalStorage = () => {
+    const nombresGuardados = localStorage.getItem("nombres");
+    if (nombresGuardados) {
+      setNombres(JSON.parse(nombresGuardados));
+    }
+  };
+
+  const searchIdLocalStorage = (id: string) => {
+      
+    const nombresGuardados = localStorage.getItem("nombres");
+    if (nombresGuardados) {
+      const nombresGuardadosParseados = JSON.parse(nombresGuardados);
+      const nombreGuardadoEncontrado = nombresGuardadosParseados.find((nombreGuardado: Nombres) => {
+        return nombreGuardado.idCategoria === id;
+      });
+
+      if (nombreGuardadoEncontrado) {
+        const nuevoNombreGuardado = { ...nombreGuardadoEncontrado };
+        localStorage.setItem("nombre", JSON.stringify(nuevoNombreGuardado));
+       setNombresId(nuevoNombreGuardado);
+       
+      } else {
+        console.log(`No se encontró ningún nombre con idCategoria: ${id}`);
+      }
+    }
+  }
+
+
+  const guardarEnLocalStorage = (nuevosNombres: Nombres[]) => {
     localStorage.setItem("nombres", JSON.stringify(nuevosNombres));
-
-    setNombre("");
-    setApellido("");
-    setIdCategoria("");
   };
 
-  const storage: ContextState = {
-    users,
-    setUsers,
-    nombre,
-    setNombre,
-    apellido,
-    setApellido,
-    idCategoria,
-    setIdCategoria,
+  useEffect(() => {
+    obtenerNombresDeLocalStorage();
+  }, []);
+
+
+  const value = {
     nombres,
-    setNombres,
-    nuevoNombre,
-    setNuevoNombre,
-    nuevoApellido,
-    setNuevoApellido,
-    nuevoIdCategoria,
-    setNuevoIdCategoria,
-    borrarCategoria,
-    setBorrarCategoria,
-    error,
-    setError,
-    guardarEnLocalStorage
+    guardarEnLocalStorage,
+    obtenerNombresDeLocalStorage,
+    nombreId,
+    searchIdLocalStorage,
   };
-
-  return (
-    <UsersContext.Provider value={storage}>{children}</UsersContext.Provider>
-  );
+  return <UsersContext.Provider 
+  value={value}>
+    {children}
+    </UsersContext.Provider>;
+  
+  // return (
+  //   <UsersContext.Provider
+  //     value={{
+  //       nombres,
+  //       guardarEnLocalStorage,
+  //       obtenerNombresDeLocalStorage,
+  //       searchIdLocalStorage,
+  //       nombreId,
+  //     }}
+  //   >
+  //     {children}
+  //   </UsersContext.Provider>
+  // );
 };
 
-export const useUsersContext = () => useContext(UsersContext);
+export const useUsersContext = () => {
+  const context = useContext(UsersContext);
+  if (!context) {
+    throw new Error(
+      "useUsersContext must be used within a UsersContextProvider"
+    );
+  }
+  return context;
+};
